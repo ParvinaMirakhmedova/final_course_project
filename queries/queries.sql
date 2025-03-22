@@ -6,13 +6,6 @@ SELECT
 FROM view1_patients_1
 GROUP BY dm_type;
 
--- 2. Пациенты с самой высокой глюкозой (TOP-5)
-SELECT 
-    full_name, age, sex, fbg, bmi
-FROM view1_patients_1
-ORDER BY fbg DESC
-LIMIT 5;
-
 -- 3. Распределение пациентов по возрастным группам с оконной функцией
 SELECT 
     patient_ID,
