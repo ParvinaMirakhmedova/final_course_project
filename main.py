@@ -5,7 +5,6 @@ from db import fetch_patients
 
 st.set_page_config(page_title="Diabetes Dashboard", layout="wide")
 
-# Загружаем данные из DuckDB
 @st.cache_data
 def load_data():
     return fetch_patients()
@@ -15,29 +14,28 @@ df = load_data()
 # ---------- ФИЛЬТРЫ ----------
 st.sidebar.header("Фильтры")
 
-if "age" in df.columns:
-    df["age"] = df["age"].fillna(df["age"].median())
-    min_age, max_age = int(df["age"].min()), int(df["age"].max())
-    age_range = st.sidebar.slider("Возраст", min_age, max_age, (min_age, max_age))
-    df = df[df["age"].between(age_range[0], age_range[1])]
+def apply_categorical_filter(df, column, label):
+    if column in df.columns:
+        if df[column].dropna().empty:
+            st.warning(f"Нет данных по {label.lower()}.")
+            return df
+        df[column] = df[column].fillna(df[column].mode().iloc[0])
+        options = df[column].unique().tolist()
+        selected = st.sidebar.multiselect(label, options=options, default=options)
+        df = df[df[column].isin(selected)]
+    return df
 
-if "sex" in df.columns:
-    df["sex"] = df["sex"].fillna(df["sex"].mode().iloc[0])
-    options = df["sex"].unique().tolist()
-    selected = st.sidebar.multiselect("Пол", options=options, default=options)
-    df = df[df["sex"].isin(selected)]
+def apply_numerical_filter(df, column, label):
+    if column in df.columns:
+        df[column] = df[column].fillna(df[column].median())
+        min_val, max_val = float(df[column].min()), float(df[column].max())
+        selected_range = st.sidebar.slider(label, min_val, max_val, (min_val, max_val))
+        df = df[df[column].between(*selected_range)]
+    return df
 
-if "dm_type" in df.columns:
-    df["dm_type"] = df["dm_type"].fillna(df["dm_type"].mode().iloc[0])
-    dm_options = df["dm_type"].unique().tolist()
-    selected_dm = st.sidebar.multiselect("Тип диабета", options=dm_options, default=dm_options)
-    df = df[df["dm_type"].isin(selected_dm)]
-
-if "bmi" in df.columns:
-    df["bmi"] = df["bmi"].fillna(df["bmi"].median())
-    min_bmi, max_bmi = float(df["bmi"].min()), float(df["bmi"].max())
-    bmi_range = st.sidebar.slider("BMI", min_bmi, max_bmi, (min_bmi, max_bmi))
-    df = df[df["bmi"].between(bmi_range[0], bmi_range[1])]
+df = apply_categorical_filter(df, "sex", "Пол")
+df = apply_categorical_filter(df, "dm_type", "Тип диабета")
+df = apply_numerical_filter(df, "bmi", "BMI")
 
 # ---------- ОСНОВНОЙ КОНТЕНТ ----------
 st.title("📊 Diabetes Patient Dashboard")
@@ -47,14 +45,15 @@ st.dataframe(df)
 # ---------- ДИАГРАММЫ ----------
 st.subheader("Визуализация")
 
-if "bmi" in df.columns:
-    st.plotly_chart(px.histogram(df, x="bmi", nbins=20, title="Распределение BMI"), use_container_width=True)
+def show_histogram(column, title):
+    if column in df.columns:
+        df[column] = df[column].fillna(df[column].median())
+        st.plotly_chart(px.histogram(df, x=column, nbins=20, title=title), use_container_width=True)
 
-if "fbg" in df.columns:
-    df["fbg"] = df["fbg"].fillna(df["fbg"].median())
-    st.plotly_chart(px.histogram(df, x="fbg", nbins=20, title="Распределение FBG"), use_container_width=True)
+show_histogram("bmi", "Распределение BMI")
+show_histogram("fbg", "Распределение FBG")
 
-if "bmi" in df.columns and "fbg" in df.columns:
+if all(col in df.columns for col in ["bmi", "fbg"]):
     st.plotly_chart(
         px.scatter(df, x="bmi", y="fbg", color="sex", title="BMI vs FBG", hover_data=["full_name"]),
         use_container_width=True

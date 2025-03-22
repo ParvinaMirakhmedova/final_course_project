@@ -1,26 +1,32 @@
-CREATE TABLE IF NOT EXISTS patients_1 (
+DROP TABLE IF EXISTS patients_1;
+CREATE TABLE patients_1 (
     patient_ID INTEGER PRIMARY KEY,
-    full_name VARCHAR(100),
+    full_name TEXT,
     age INTEGER,
-    sex VARCHAR(10),
-    occupation VARCHAR(100),
-    address VARCHAR(150)
+    sex TEXT,
+    occupation TEXT,
+    address TEXT
 );
 
-CREATE TABLE IF NOT EXISTS diabetic_retinopathy_1 (
+DROP TABLE IF EXISTS diabetic_retinopathy_1;
+CREATE TABLE diabetic_retinopathy_1 (
     patient_ID INTEGER PRIMARY KEY,
-    dm_type VARCHAR(50),
-    renal_function VARCHAR(50),
+    full_name TEXT,
+    dm_type TEXT,
+    renal_function TEXT,
     duration INTEGER,
-    diabetic_retinopathy VARCHAR(50),
-    fbg INTEGER,
-    hereditary VARCHAR(50)
+    diabetic_retinopathy TEXT,
+    fbg DOUBLE,
+    hereditary TEXT,
+    FOREIGN KEY (patient_ID) REFERENCES patients_1 (patient_ID)
 );
 
-CREATE TABLE IF NOT EXISTS diseases_1 (
+DROP TABLE IF EXISTS diseases_1;
+CREATE TABLE diseases_1 (
     patient_ID INTEGER PRIMARY KEY,
-    neuropathy VARCHAR(50),
-    nephropathy VARCHAR(50),
-    smoking VARCHAR(50),
-    bmi INTEGER
+    neuropathy TEXT,
+    nephropathy TEXT,
+    smoking TEXT,
+    bmi DOUBLE,
+    FOREIGN KEY (patient_ID) REFERENCES patients_1 (patient_ID)
 );
