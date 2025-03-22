@@ -28,6 +28,11 @@ def apply_categorical_filter(df, column, label):
     selected = st.sidebar.multiselect(label, options, default=options)
     return df[df[column].isin(selected)]
 
+if "smoking" in df.columns:
+    options = sorted(df["smoking"].dropna().unique())
+    selected = st.sidebar.radio("Курение", options)
+    df = df[df["smoking"] == selected]
+
 # 📊 Числовой фильтр (BMI, возраст, FBG)
 def apply_numerical_filter(df, column, label):
     if column not in df.columns:
@@ -40,6 +45,7 @@ def apply_numerical_filter(df, column, label):
 # ✅ Применяем фильтры
 df = apply_categorical_filter(df, "sex", "Пол")
 df = apply_categorical_filter(df, "dm_type", "Тип диабета")
+df = apply_categorical_filter(df, "diabetic_retinopathy", "Диабетическая ретинопатия")
 df = apply_numerical_filter(df, "bmi", "BMI")
 df = apply_numerical_filter(df, "age", "Возраст")
 df = apply_numerical_filter(df, "fbg", "FBG")
